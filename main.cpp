@@ -136,10 +136,12 @@ void main_loop()
 	static int s_is_down = 0;
 	static int mouse_left_is_down = 0;
 	static int ctrl_is_down = 0;
+	static int shift_is_down = 0;
 
 	int w_is_pressed = 0;
 	int s_is_pressed = 0;
 	int c_is_pressed = 0;
+	int r_is_pressed = 0;
 	int space_is_pressed = 0;
 	int mouse_left_was_pressed = 0;
 	int mouse_right_was_pressed = 0;
@@ -169,6 +171,8 @@ void main_loop()
 			if (key == SDLK_SPACE) space_is_pressed = 1;
 			
 			if (key == SDLK_g) showing_debug = !showing_debug;
+			if (key == SDLK_r) r_is_pressed = 1;
+			if (key == SDLK_LSHIFT || key == SDLK_RSHIFT) shift_is_down = 1;
 		}	break;
 
 		case SDL_KEYUP:
@@ -179,6 +183,7 @@ void main_loop()
 			if (key == SDLK_w) w_is_down = 0;
 			if (key == SDLK_s) s_is_down = 0;
 			if (key == SDLK_LCTRL || key == SDLK_RCTRL) ctrl_is_down = 0;
+			if (key == SDLK_LSHIFT || key == SDLK_RSHIFT) shift_is_down = 0;
 		}	break;
 
 		case SDL_MOUSEMOTION:
@@ -382,6 +387,8 @@ void main_loop()
 				" > Hit ctrl + s to save the sprite map.\n"
 				" > Hit ctrl + c to copy the currently hovered tile to the mouse selection.\n"
 				" > Note: The editor can not edit the collision map. This must be done by hand in a text editor.\n"
+				" > Hit ctrl + r to reload the sprite map.\n"
+				" > Hold shift and press LEFT-CLICK to delete the time under the mouse.\n"
 			);
 		}
 	}
@@ -416,8 +423,16 @@ void main_loop()
 			printf("Map saved.\n");
 		}
 
+		if (ctrl_is_down && r_is_pressed) {
+			// reload map
+			map.tiles = sprite_map.tiles;
+			printf("reloading map\n");
+		}
+
 		if (mouse_left_was_pressed) {
-			sprite_map.tiles[tile_y * sprite_map.w + tile_x] = tile_selection;
+			// if holding shift we will delete that tile
+			int new_tile = shift_is_down ? -1 : tile_selection;
+			sprite_map.tiles[tile_y * sprite_map.w + tile_x] = new_tile;
 		}
 	}
 
